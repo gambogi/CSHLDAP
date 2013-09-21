@@ -59,3 +59,15 @@ So to be clear the return looks like this: `[('dn',{attributes})]`
 
 ####WARNING: Not all users have the same attribute fields in their dictionary
 Do not depend on all users having a `twitterName` for example.
+
+If you have looked at the source, you may be ready to throw something at me. 
+I would like to stress that this is a library intended for people who wouldn't
+touch ldap with a 10ft pole. The decision to have that optional field vomit was
+made so that writing easy to read lines like `search(active=1)` are possible.
+If you desire more functionality I encourage you to write your own ldap queries 
+with [python-ldap](http://www.python-ldap.org/), it's not that bad.
+
+Or make a pull request.
+
+
+
