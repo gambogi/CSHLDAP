@@ -57,5 +57,5 @@ dictionary of attributes as keys.
 
 So to be clear the return looks like this: `[('dn',{attributes})]
 
-WARNING: not all users have the same dictionary of attributes. Depending on a 
-particular field existing may cause you great pain.
+####WARNING: Not all users have the same attribute fields in their dictionary
+Do not depend on all users having a `twitterName` for example.
