@@ -15,7 +15,7 @@ CSHLDAP depends on `python-ldap` ([homepage](http://www.python-ldap.org/)).
 (or just download the source)
 
 ## Basic Usage
-
+    ```python
     #!/usr/bin/python
     from CSHLDAP import CSHLDAP
     
@@ -44,6 +44,7 @@ CSHLDAP depends on `python-ldap` ([homepage](http://www.python-ldap.org/)).
     # You may optionally include a search string. 
     # Equivalent to search(uid='username')
     ldap.members('test')
+    ```
 
 ## Functions
 
