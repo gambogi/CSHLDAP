@@ -55,7 +55,7 @@ The first element of each tuple is the Distinguished Name (dn) of the entry.
 This is the path to the entry in ldap. The second element of each tuple is a
 dictionary of attributes as keys. 
 
-So to be clear the return looks like this: `[('dn',{attributes})]
+So to be clear the return looks like this: `[('dn',{attributes})]`
 
 ####WARNING: Not all users have the same attribute fields in their dictionary
 Do not depend on all users having a `twitterName` for example.
