@@ -27,63 +27,11 @@ class CSHLDAP:
         """
         return list(self.ldap.search_s(self.base,pyldap.SCOPE_SUBTREE,'(uid='+user+')')[0])[1]
 
-    def search( self, \
-                uid='', \
-                memberSince='', \
-                objectClass='', \
-                uidNumber='', \
-                cn='', \
-                aolScreenName='', \
-                drinkAdmin='', \
-                onfloor='', \
-                mail='', \
-                description='', \
-                loginShell='', \
-                blogURL='', \
-                gidNumber='', \
-                birthday='', \
-                active='', \
-                nickname='', \
-                homePhone='', \
-                displayName='', \
-                mobile='', \
-                houseMember='', \
-                alumni='', \
-                ritYear='', \
-                gecos='', \
-                sn='', \
-                ritDn='', \
-                homeDirectory='', \
-                ou='', \
-                givenName='', \
-                icqNumber='', \
-                middleName='', \
-                homepageURL='', \
-                jobStatus='', \
-                googleScreenName='', \
-                twitterName='', \
-                resumeURL='', \
-                plex='', \
-                ritAlumni='', \
-                github='', \
-                skills='', \
-                housingPoints='', \
-                jpegPhoto='', \
-                yahooScreenName='', \
-                msnScreenName='', \
-                major='', \
-                postalAddress='', \
-                homePostalAddress='', \
-                roomNumber=''):
-        filterstr = '' 
-        numArgs = 0
-        for key, val in locals().iteritems():
-            if key not in ['filterstr', 'self', 'numArgs'] and val != '':
-               filterstr += "({0}={1})".format(key, val)
-               numArgs+=1
+    def search( self, **kwargs):
+        filterstr =''
+        for key, value in kwargs.iteritems():
+            filterstr += '({0}={1})'.format(key,value)
 
-        if numArgs == 0:
-            return self.ldap.search_s(self.base, pyldap.SCOPE_SUBTREE, "uid=*")
-        elif numArgs > 1:
+        if len(kwargs) > 1:
             filterstr = '(&'+filterstr+')'
         return self.ldap.search_s(self.base, pyldap.SCOPE_SUBTREE, filterstr)
