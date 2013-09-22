@@ -63,16 +63,6 @@ Do not depend on all users having a `twitterName` for example.
 
 ## Rationale
 
-### Why is search()'s implementation so ugly?
-If you have looked at the source, you may be ready to throw something at me. 
-I would like to stress that this is a library intended for people who wouldn't
-touch ldap with a 10ft pole. The decision to have that optional field vomit was
-made so that writing easy to read lines like `search(active=1)` are possible.
-If you desire more functionality I encourage you to write your own ldap queries 
-with [python-ldap](http://www.python-ldap.org/), it's not that bad.
-
-Or make a pull request.
-
 ### Why not python3? 
 Simple. `python3-ldap` is currently in beta. `python-ldap` currently works. A 
 python3 version will be written, but for now I'm sticking with the supported 
