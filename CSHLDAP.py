@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# written for python 2.7
+
 import ldap as pyldap       
 
 class CSHLDAP:
@@ -84,5 +86,4 @@ class CSHLDAP:
             return self.ldap.search_s(self.base, pyldap.SCOPE_SUBTREE, "uid=*")
         elif numArgs > 1:
             filterstr = '(&'+filterstr+')'
-        print filterstr
         return self.ldap.search_s(self.base, pyldap.SCOPE_SUBTREE, filterstr)
