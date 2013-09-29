@@ -3,8 +3,8 @@ from CSHLDAP import *
 import ldap as pyldap
 
 # CHANGE VALUES AS APPROPRIATE 
-username = ''
-password = ''
+username = 'pval'
+password = 'pvaldb'
 ldap = CSHLDAP(username, password)
 
 def testConnection():
