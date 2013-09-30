@@ -16,10 +16,8 @@ class CSHLDAP:
             self.ldap.sasl_interactive_bind_s("", auth)
             self.ldap.set_option(pyldap.OPT_DEBUG_LEVEL,0)
         except pyldap.LDAPError, e:
+            print 'Are you sure you\'ve run kinit?'
             print e
-
-        #self.ldap.simple_bind('cn='+user+','+bind, password
-
 
     def members(self, uid="*"):
         """ members() issues an ldap query for all users, and returns a dict
