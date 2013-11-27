@@ -6,18 +6,22 @@ import ldap.sasl as sasl
 
 class CSHLDAP:
     def __init__(self, user, password, host='ldap://ldap.csh.rit.edu', \
-            base='ou=Users,dc=csh,dc=rit,dc=edu', bind='ou=Apps,dc=csh,dc=rit,dc=edu'):
+            base='ou=Users,dc=csh,dc=rit,dc=edu', bind='ou=Apps,dc=csh,dc=rit,dc=edu', app = False):
         self.host = host
         self.base = base        
-        
-        try:
+        if not app:
+            try:
+                self.ldap = pyldap.initialize(host)
+                auth = sasl.gssapi("")
+            	self.ldap.sasl_interactive_bind_s("", auth)
+            	self.ldap.set_option(pyldap.OPT_DEBUG_LEVEL,0)
+            except pyldap.LDAPError, e:
+            	print 'Are you sure you\'ve run kinit?'
+            	print e
+	else:
             self.ldap = pyldap.initialize(host)
-            auth = sasl.gssapi("")
-            self.ldap.sasl_interactive_bind_s("", auth)
-            self.ldap.set_option(pyldap.OPT_DEBUG_LEVEL,0)
-        except pyldap.LDAPError, e:
-            print 'Are you sure you\'ve run kinit?'
-            print e
+	    self.base = base
+            self.ldap.simple_bind('cn='+user+','+bind, password)
 
     def members(self, uid="*"):
         """ members() issues an ldap query for all users, and returns a dict
@@ -45,6 +49,7 @@ class CSHLDAP:
             filterstr = '(&'+filterstr+')'
         return self.ldap.search_s(self.base, pyldap.SCOPE_SUBTREE, filterstr)
 
+    
 
 class KerberosTicket:
     def __init__(self, service):
