@@ -3,6 +3,8 @@
 
 import ldap as pyldap       
 import ldap.sasl as sasl
+import ldap.modlist
+from copy import deepcopy
 
 class CSHLDAP:
     def __init__(self, user, password, host='ldap://ldap.csh.rit.edu', \
@@ -40,7 +42,7 @@ class CSHLDAP:
         """
         return list(self.ldap.search_s(self.base,pyldap.SCOPE_SUBTREE,'(uid='+user+')')[0])[1]
 
-    def search( self, **kwargs):
+    def search( self, **kwargs ):
         filterstr =''
         for key, value in kwargs.iteritems():
             filterstr += '({0}={1})'.format(key,value)
@@ -48,8 +50,18 @@ class CSHLDAP:
         if len(kwargs) > 1:
             filterstr = '(&'+filterstr+')'
         return self.ldap.search_s(self.base, pyldap.SCOPE_SUBTREE, filterstr)
-
     
+    def modify( self, uid, **kwargs ):
+        dn = 'uid='+uid+',ou=Users,dc=csh,dc=rit,dc=edu'
+        old_attrs = self.member(uid)
+        new_attrs = deepcopy(old_attrs)
+
+        for field, value in kwargs.iteritems():
+            if field in old_attrs:
+                new_attrs[field] = [str(value)]
+        modlist = pyldap.modlist.modifyModlist(old_attrs, new_attrs)
+        
+        self.ldap.modify_s(dn, modlist)
 
 class KerberosTicket:
     def __init__(self, service):
