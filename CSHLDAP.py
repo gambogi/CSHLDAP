@@ -7,7 +7,7 @@ import ldap.modlist
 from copy import deepcopy
 
 class CSHLDAP:
-    def __init__(self, user, password, host='ldap://ldap.csh.rit.edu', \
+    def __init__(self, user, password, host='ldaps://ldap.csh.rit.edu:636', \
             base='ou=Users,dc=csh,dc=rit,dc=edu', bind='ou=Apps,dc=csh,dc=rit,dc=edu', app = False):
         self.host = host
         self.base = base        
