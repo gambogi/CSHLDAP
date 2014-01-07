@@ -7,7 +7,7 @@ import ldap.modlist
 from copy import deepcopy
 
 class CSHLDAP:
-    def __init__(self, user, password, host='ldap://ldap.csh.rit.edu', \
+    def __init__(self, user, password, host='ldaps://ldap.csh.rit.edu:636', \
             base='ou=Users,dc=csh,dc=rit,dc=edu', bind='ou=Apps,dc=csh,dc=rit,dc=edu', app = False):
         self.host = host
         self.base = base        
@@ -31,7 +31,7 @@ class CSHLDAP:
             3s to complete. You may optionally restrict the scope by specifying
             a uid, which is roughly equivalent to a search(uid='foo')
         """
-        entries = self.ldap.search_s(self.base,pyldap.SCOPE_SUBTREE,'(uid='+uid+')')
+        entries = self.ldap.search_s(self.base,pyldap.SCOPE_SUBTREE,'(uid='+uid+')', ['*','+'])
         result = []
         for entry in entries:
             result.append(entry[1])
@@ -40,7 +40,7 @@ class CSHLDAP:
     def member(self, user):
         """ Returns a user as a dict of attributes 
         """
-        return list(self.ldap.search_s(self.base,pyldap.SCOPE_SUBTREE,'(uid='+user+')')[0])[1]
+        return list(self.ldap.search_s(self.base,pyldap.SCOPE_SUBTREE,'(uid='+user+')', ['*','+'])[0])[1]
 
     def search( self, **kwargs ):
         filterstr =''
@@ -49,7 +49,7 @@ class CSHLDAP:
 
         if len(kwargs) > 1:
             filterstr = '(&'+filterstr+')'
-        return self.ldap.search_s(self.base, pyldap.SCOPE_SUBTREE, filterstr)
+        return self.ldap.search_s(self.base, pyldap.SCOPE_SUBTREE, filterstr, ['*','+'])
     
     def modify( self, uid, **kwargs ):
         dn = 'uid='+uid+',ou=Users,dc=csh,dc=rit,dc=edu'
