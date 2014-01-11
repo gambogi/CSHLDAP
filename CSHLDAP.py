@@ -71,6 +71,15 @@ class CSHLDAP:
             members.append(self.search(dn=member_dn)[0])
         return members
 
+    def getGroups(self, member_dn):
+        searchResult = self.search(base=self.groups, member=member_dn)
+        if len(searchResult) == 0: return []
+        
+        groupList = []
+        for group in searchResult:
+            groupList.append(group[1]['cn'][0])
+        return groupList
+
     def drinkAdmins(self):
         """ Returns a list of drink admins uids
         """
@@ -103,7 +112,12 @@ class CSHLDAP:
         if len(kwargs) > 1:
             filterstr = '(&'+filterstr+')'
         
-        return self.ldap.search_s(base, pyldap.SCOPE_SUBTREE, filterstr, ['*','+'])
+        result = self.ldap.search_s(base, pyldap.SCOPE_SUBTREE, filterstr, ['*','+'])
+        if base == self.users:
+            for member in result:
+                groups = self.getGroups(member[0])
+                member[1]['groups'] = groups
+        return result
     
     def modify( self, uid, base=False, **kwargs ):
         if not base:
