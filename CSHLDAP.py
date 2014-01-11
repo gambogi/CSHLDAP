@@ -10,20 +10,23 @@ class CSHLDAP:
     def __init__(self, user, password, host='ldaps://ldap.csh.rit.edu:636', \
             base='ou=Users,dc=csh,dc=rit,dc=edu', bind='ou=Apps,dc=csh,dc=rit,dc=edu', app = False):
         self.host = host
-        self.base = base        
-        if not app:
+        self.base = base
+        self.users = 'ou=Users,dc=csh,dc=rit,dc=edu'
+        self.groups = 'ou=Groups,dc=csh,dc=rit,dc=edu'
+        self.committees = 'ou=Committees,dc=csh,dc=rit,dc=edu'
+        self.ldap = pyldap.initialize(host)
+
+        if app:
+            self.ldap.simple_bind('cn='+user+','+bind, password)
+        else:
             try:
-                self.ldap = pyldap.initialize(host)
                 auth = sasl.gssapi("")
-            	self.ldap.sasl_interactive_bind_s("", auth)
+            	
+                self.ldap.sasl_interactive_bind_s("", auth)
             	self.ldap.set_option(pyldap.OPT_DEBUG_LEVEL,0)
             except pyldap.LDAPError, e:
             	print 'Are you sure you\'ve run kinit?'
             	print e
-	else:
-            self.ldap = pyldap.initialize(host)
-	    self.base = base
-            self.ldap.simple_bind('cn='+user+','+bind, password)
 
     def members(self, uid="*"):
         """ members() issues an ldap query for all users, and returns a dict
@@ -31,7 +34,7 @@ class CSHLDAP:
             3s to complete. You may optionally restrict the scope by specifying
             a uid, which is roughly equivalent to a search(uid='foo')
         """
-        entries = self.ldap.search_s(self.base,pyldap.SCOPE_SUBTREE,'(uid='+uid+')', ['*','+'])
+        entries = self.search(uid='*')
         result = []
         for entry in entries:
             result.append(entry[1])
@@ -40,18 +43,71 @@ class CSHLDAP:
     def member(self, user):
         """ Returns a user as a dict of attributes 
         """
-        return list(self.ldap.search_s(self.base,pyldap.SCOPE_SUBTREE,'(uid='+user+')', ['*','+'])[0])[1]
+        return self.search(uid=user)[0][1]
 
-    def search( self, **kwargs ):
+    def eboard(self):
+        """ Returns a list of eboard members formatted as a search
+            inserts an extra ['commmittee'] attribute 
+        """
+        # self.committee used as base because that's where eboard 
+        # info is kept
+        committees = self.search(base = self.committees, cn='*')
+        directors = []
+        for committee in committees:
+            for head in committee[1]['head']:
+                director = self.search(dn=head)[0]
+                director[1]['committee'] = committee[1]['cn'][0]
+                directors.append(director)
+        return directors
+
+    def group(self, group_cn):
+        members = self.search(base=self.groups,cn=group_cn)
+        if len(members) == 0:
+            return members
+        else:
+            member_dns = members[0][1]['member']
+        members = []
+        for member_dn in member_dns:
+            members.append(self.search(dn=member_dn)[0])
+        return members
+
+    def drinkAdmins(self):
+        """ Returns a list of drink admins uids
+        """
+        admins = self.group('drink')
+        return admins
+
+    def rtps(self):
+        rtps = self.group('rtp')
+        return rtps
+
+    def search( self, base=False, **kwargs ):
+        """ Returns matching entries for search in ldap
+            structured as [(dn, {attributes})] 
+            UNLESS searching by dn, in which case the first match
+            is returned
+        """ 
+        scope = pyldap.SCOPE_SUBTREE
+        if not base:
+            base = self.users
+        
         filterstr =''
         for key, value in kwargs.iteritems():
             filterstr += '({0}={1})'.format(key,value)
-
+            if key == 'dn': 
+                filterstr = '(objectClass=*)'
+                base = value
+                scope = pyldap.SCOPE_BASE
+                break
+        
         if len(kwargs) > 1:
             filterstr = '(&'+filterstr+')'
-        return self.ldap.search_s(self.base, pyldap.SCOPE_SUBTREE, filterstr, ['*','+'])
+        
+        return self.ldap.search_s(base, pyldap.SCOPE_SUBTREE, filterstr, ['*','+'])
     
-    def modify( self, uid, **kwargs ):
+    def modify( self, uid, base=False, **kwargs ):
+        if not base:
+            base = self.users
         dn = 'uid='+uid+',ou=Users,dc=csh,dc=rit,dc=edu'
         old_attrs = self.member(uid)
         new_attrs = deepcopy(old_attrs)
