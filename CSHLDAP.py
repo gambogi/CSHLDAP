@@ -117,6 +117,9 @@ class CSHLDAP:
             for member in result:
                 groups = self.getGroups(member[0])
                 member[1]['groups'] = groups
+                if 'eboard' in member[1]['groups']:
+                    member[1]['committee'] = self.search(base=self.committees, \
+                           head=member[0])[0][1]['cn'][0]
         return result
     
     def modify( self, uid, base=False, **kwargs ):
