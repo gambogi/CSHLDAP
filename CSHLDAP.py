@@ -90,7 +90,10 @@ class CSHLDAP:
         rtps = self.group('rtp')
         return rtps
 
-    def search( self, base=False, **kwargs ):
+    def trimResult(self, result):
+        return [x[1] for x in result]
+
+    def search( self, base=False, trim=False, **kwargs ):
         """ Returns matching entries for search in ldap
             structured as [(dn, {attributes})] 
             UNLESS searching by dn, in which case the first match
@@ -120,7 +123,9 @@ class CSHLDAP:
                 if 'eboard' in member[1]['groups']:
                     member[1]['committee'] = self.search(base=self.committees, \
                            head=member[0])[0][1]['cn'][0]
-        return result
+
+        if trim: return self.trimResult(result)
+        else:    return result
     
     def modify( self, uid, base=False, **kwargs ):
         if not base:
