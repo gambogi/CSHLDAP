@@ -144,14 +144,10 @@ class CSHLDAP:
 
     class Member(object):
         def __init__(self, searchResult):
-            if len(searchResult) == 0:
-                self.memberDict = {}
-                return
-            searchResultTuple = searchResult[0]
-            if len(searchResultTuple) < 2:
-                self.memberDict = {}
-                return
-            searchResultDictionary = searchResultTuple[1]
+            try:
+                searchResultDict = searchResult[0][1]
+            except IndexError:
+                searchResultDict = {}
             self.memberDict = searchResultDictionary
 
         def __getattr__(self, attribute):
