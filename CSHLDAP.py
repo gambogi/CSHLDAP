@@ -4,6 +4,8 @@
 import ldap as pyldap
 import ldap.sasl as sasl
 import ldap.modlist
+import re
+from datetime import datetime, date
 from copy import deepcopy
 
 class CSHLDAP:
@@ -173,7 +175,49 @@ class CSHLDAP:
             try:
                 attributes = self.memberDict[attribute]
                 if len(attributes) == 1:
-                    return attributes[0]
+                    attribute = attributes[0]
+                    if attribute.isdigit():
+                        return int(attribute)
+                    return attribute
                 return attributes
             except (KeyError, IndexError):
                 return None
+
+        def fields(self):
+            return self.memberDict.keys()
+
+        def isActive(self):
+            return bool(self.active)
+
+        def isAlumni(self):
+            return bool(self.alumni)
+
+        def isDrinkAdmin(self):
+            return bool(self.drinkAdmin)
+
+        def isOnFloor(self):
+            return bool(self.onfloor)
+
+        def isEboard(self):
+            return 'eboard' in self.groups
+
+        def isRTP(self):
+            return 'rtp' in self.groups
+
+        def birthdate(self):
+            if not self.birthday:
+                return None
+            return dateFromLDAPTimestamp(self.birthday)
+
+        def joindate(self):
+            if not self.memberSince:
+                return None
+            joined = self.memberSince
+            return dateFromLDAPTimestamp(joined)
+
+def dateFromLDAPTimestamp(timestamp):
+    # only check the first 12 characters: YYYYmmddHHMM
+    numberOfCharacters = len("YYYYmmddHHMM")
+    timestamp = timestamp[:numberOfCharacters]
+    day = datetime.strptime(timestamp, '%Y%m%d%H%M')
+    return date(year=day.year, month=day.month, day=day.day)
