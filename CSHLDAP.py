@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# written for python 2.7
+# written for python 2.7, tested on 2.6
 
 import ldap as pyldap
 import ldap.sasl as sasl
