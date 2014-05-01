@@ -214,6 +214,12 @@ class Member(object):
     def isRTP(self):
         return 'rtp' in self.groups
 
+    def isBirthday(self):
+        birthday = self.birthdate()
+        today = date.today()
+        return (birthday.month == today.month and
+                birthday.day == today.day)
+
     def birthdate(self):
         if not self.birthday:
             return None
@@ -224,6 +230,24 @@ class Member(object):
             return None
         joined = self.memberSince
         return dateFromLDAPTimestamp(joined)
+
+    def age(self):
+        if not self.birthdate():
+            return -1
+        adjuster = 0
+        today = date.today()
+        birthday = self.birthdate()
+        if today.month == birthday.month:
+            if today.day < birthday.day:
+                adjuster -= 1
+        elif today.month < birthday.month:
+            adjuster -= 1
+        return (today.year - birthday.year) + adjuster
+
+    def reload(self):
+        if not self.ldap:
+            return
+        self.memberDict = self.ldap.member(self.uid)
 
 def dateFromLDAPTimestamp(timestamp):
     # only check the first 12 characters: YYYYmmddHHMM
