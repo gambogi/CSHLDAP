@@ -159,19 +159,21 @@ class CSHLDAP:
     def memberObjects( self, searchResults ):
         results = []
         for result in searchResults:
-            newMember = Member(result)
+            newMember = Member(result, ldap=self)
             results.append(newMember)
         return results
 
 class Member(object):
-    def __init__(self, member):
+    def __init__(self, member, ldap=None):
         if len(member) < 2:
-            memberDict = {}
+            self.memberDict = {}
         else:
-            memberDict = member[1]
-        self.memberDict = memberDict
+            self.memberDict = member[1]
+        self.ldap = ldap
 
     def __getattr__(self, attribute):
+        if attribute in ("memberDict", "ldap"):
+            return object.__getattribute__(self, attribute)
         try:
             attributes = self.memberDict[attribute]
             if len(attributes) == 1:
@@ -182,6 +184,14 @@ class Member(object):
             return attributes
         except (KeyError, IndexError):
             return None
+
+    def __setattr__(self, attribute, value):
+        if attribute in ("memberDict", "ldap"):
+            object.__setattr__(self, attribute, value)
+            return
+        kwargs = {attribute : value}
+        self.ldap.modify(uid=self.uid, **kwargs)
+        self.memberDict[attribute] = value
 
     def fields(self):
         return self.memberDict.keys()
