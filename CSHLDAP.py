@@ -28,24 +28,32 @@ class CSHLDAP:
             	print 'Are you sure you\'ve run kinit?'
             	print e
 
-    def members(self, uid="*"):
+    def members(self, uid="*", objects=False):
         """ members() issues an ldap query for all users, and returns a dict
             for each matching entry. This can be quite slow, and takes roughly
             3s to complete. You may optionally restrict the scope by specifying
             a uid, which is roughly equivalent to a search(uid='foo')
         """
         entries = self.search(uid='*')
+        if objects:
+            return self.memberObjects(entries)
         result = []
         for entry in entries:
             result.append(entry[1])
         return result
 
-    def member(self, user):
+    def member(self, user, objects=False):
         """ Returns a user as a dict of attributes
         """
-        return self.search(uid=user)[0][1]
+        try:
+            member = self.search(uid=user, objects=objects)[0]
+        except IndexError:
+            return None
+        if objects:
+            return member
+        return member[1]
 
-    def eboard(self):
+    def eboard(self, objects=False):
         """ Returns a list of eboard members formatted as a search
             inserts an extra ['commmittee'] attribute
         """
@@ -58,9 +66,11 @@ class CSHLDAP:
                 director = self.search(dn=head)[0]
                 director[1]['committee'] = committee[1]['cn'][0]
                 directors.append(director)
+        if objects:
+            return self.memberObjects(directors)
         return directors
 
-    def group(self, group_cn):
+    def group(self, group_cn, objects=False):
         members = self.search(base=self.groups,cn=group_cn)
         if len(members) == 0:
             return members
@@ -69,6 +79,8 @@ class CSHLDAP:
         members = []
         for member_dn in member_dns:
             members.append(self.search(dn=member_dn)[0])
+        if objects:
+            return self.memberObjects(members)
         return members
 
     def getGroups(self, member_dn):
@@ -80,14 +92,14 @@ class CSHLDAP:
             groupList.append(group[1]['cn'][0])
         return groupList
 
-    def drinkAdmins(self):
+    def drinkAdmins(self, objects=False):
         """ Returns a list of drink admins uids
         """
-        admins = self.group('drink')
+        admins = self.group('drink', objects=objects)
         return admins
 
-    def rtps(self):
-        rtps = self.group('rtp')
+    def rtps(self, objects=False):
+        rtps = self.group('rtp', objects=objects)
         return rtps
 
     def trimResult(self, result):
@@ -124,7 +136,7 @@ class CSHLDAP:
                     member[1]['committee'] = self.search(base=self.committees, \
                            head=member[0])[0][1]['cn'][0]
         if objects:
-            return self.members(result)
+            return self.memberObjects(result)
         finalResult = self.trimResult(result) if trim else result
         return finalResult
 
@@ -142,7 +154,7 @@ class CSHLDAP:
 
         self.ldap.modify_s(dn, modlist)
 
-    def members( self, searchResults ):
+    def memberObjects( self, searchResults ):
         results = []
         for result in searchResults:
             newMember = self.Member(result)
