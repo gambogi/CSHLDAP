@@ -93,7 +93,7 @@ class CSHLDAP:
     def trimResult(self, result):
         return [x[1] for x in result]
 
-    def search( self, base=False, trim=False, member=False, **kwargs):
+    def search( self, base=False, trim=False, objects=False, **kwargs ):
         """ Returns matching entries for search in ldap
             structured as [(dn, {attributes})]
             UNLESS searching by dn, in which case the first match
@@ -123,8 +123,8 @@ class CSHLDAP:
                 if 'eboard' in member[1]['groups']:
                     member[1]['committee'] = self.search(base=self.committees, \
                            head=member[0])[0][1]['cn'][0]
-        if member:
-            return Member(result)
+        if objects:
+            return self.members(result)
         finalResult = self.trimResult(result) if trim else result
         return finalResult
 
@@ -142,13 +142,20 @@ class CSHLDAP:
 
         self.ldap.modify_s(dn, modlist)
 
+    def members( self, searchResults ):
+        results = []
+        for result in searchResults:
+            newMember = self.Member(result)
+            results.append(newMember)
+        return results
+
     class Member(object):
-        def __init__(self, searchResult):
-            try:
-                searchResultDict = searchResult[0][1]
-            except IndexError:
-                searchResultDict = {}
-            self.memberDict = searchResultDictionary
+        def __init__(self, member):
+            if len(member) < 2:
+                memberDict = {}
+            else:
+                memberDict = member[1]
+            self.memberDict = memberDict
 
         def __getattr__(self, attribute):
             try:
