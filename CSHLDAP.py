@@ -261,6 +261,15 @@ class Member(object):
             return
         self.memberDict = self.ldap.member(self.uid)
 
+    def fullName(self):
+        if self.givenName and self.sn:
+            return "{0} {1}".format(self.givenName, self.sn)
+        if self.givenName:
+            return self.givenName
+        if self.sn:
+            return self.sn
+        return self.uid
+
     def __str__(self):
         string = ""
         for key in self.memberDict.keys():
