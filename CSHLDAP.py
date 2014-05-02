@@ -215,7 +215,7 @@ class Member(object):
         return 'rtp' in self.groups
 
     def isBirthday(self):
-        if not birthday:
+        if not self.birthday:
             return False
         birthday = self.birthdate()
         today = date.today()
@@ -250,6 +250,13 @@ class Member(object):
         if not self.ldap:
             return
         self.memberDict = self.ldap.member(self.uid)
+
+    def __str__(self):
+        string = ""
+        for key in self.memberDict.keys():
+            thing = self.__getattr__(key)
+            string += str(key) + ": " + str(thing) + "\n"
+        return string
 
 def dateFromLDAPTimestamp(timestamp):
     # only check the first 8 characters: YYYYmmdd
