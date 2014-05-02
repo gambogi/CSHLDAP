@@ -17,9 +17,12 @@ class CSHLDAP:
         self.groups = 'ou=Groups,dc=csh,dc=rit,dc=edu'
         self.committees = 'ou=Committees,dc=csh,dc=rit,dc=edu'
         self.ldap = pyldap.initialize(host)
+        self.ldap.set_option(pyldap.OPT_X_TLS_DEMAND, True)
+        self.ldap.set_option(pyldap.OPT_DEBUG_LEVEL, 255)
 
         if app:
-            self.ldap.simple_bind('cn='+user+','+bind, password)
+            self.ldap.simple_bind('uid=' + user + ',' + base, password)
+            # self.ldap.simple_bind('uid='+user+','+bind, password)
         else:
             try:
                 auth = sasl.gssapi("")
@@ -165,6 +168,9 @@ class CSHLDAP:
 
 class Member(object):
     def __init__(self, member, ldap=None):
+        """ 
+        """
+        self.specialFields = ("memberDict", "ldap")
         if len(member) < 2:
             self.memberDict = {}
         else:
@@ -172,7 +178,8 @@ class Member(object):
         self.ldap = ldap
 
     def __getattr__(self, attribute):
-        if attribute in ("memberDict", "ldap"):
+        if (attribute == "specialFields" or
+            attribute in self.specialFields):
             return object.__getattribute__(self, attribute)
         try:
             attributes = self.memberDict[attribute]
@@ -186,6 +193,9 @@ class Member(object):
             return None
 
     def __setattr__(self, attribute, value):
+        if (attribute == "specialFields" or
+            attribute in self.specialFields):
+            return object.__setattr__(self, attribute, value)
         if attribute in ("memberDict", "ldap"):
             object.__setattr__(self, attribute, value)
             return
@@ -259,6 +269,10 @@ class Member(object):
         return string
 
 def dateFromLDAPTimestamp(timestamp):
+    """ Takes an LDAP date (In the form YYYYmmdd
+        with whatever is after that) and returns a
+        datetime.date object.
+    """
     # only check the first 8 characters: YYYYmmdd
     numberOfCharacters = len("YYYYmmdd")
     timestamp = timestamp[:numberOfCharacters]
