@@ -21,8 +21,7 @@ class CSHLDAP:
         self.ldap.set_option(pyldap.OPT_DEBUG_LEVEL, 255)
 
         if app:
-            self.ldap.simple_bind('uid=' + user + ',' + base, password)
-            # self.ldap.simple_bind('uid='+user+','+bind, password)
+            self.ldap.simple_bind('cn=' + user + ',' + bind, password)
         else:
             try:
                 auth = sasl.gssapi("")
